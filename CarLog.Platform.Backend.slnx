@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Vehicle/">
+    <Project Path="src/Services/Vehicle/CarLog.Vehicle.Api/CarLog.Vehicle.Api.csproj" />
+    <Project Path="src/Services/Vehicle/CarLog.Vehicle.Application/CarLog.Vehicle.Application.csproj" />
+    <Project Path="src/Services/Vehicle/CarLog.Vehicle.Domain/CarLog.Vehicle.Domain.csproj" />
+    <Project Path="src/Services/Vehicle/CarLog.Vehicle.Infrastructure/CarLog.Vehicle.Infrastructure.csproj" />
+  </Folder>
+</Solution>
