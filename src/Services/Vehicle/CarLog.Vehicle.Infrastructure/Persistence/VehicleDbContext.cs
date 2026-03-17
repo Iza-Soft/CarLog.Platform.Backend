@@ -43,6 +43,10 @@ public class VehicleDbContext : DbContext
                     .HasColumnName("CountryCode")
                     .IsRequired()
                     .HasMaxLength(2);
+
+                plate.HasIndex(p => new { p.PlateNumber, p.CountryCode })
+                    .IsUnique()
+                    .HasFilter("IsDeleted = 0");
             });
 
             entity.Property(v => v.Vin)
@@ -79,9 +83,9 @@ public class VehicleDbContext : DbContext
             entity.Property(v => v.IsDeleted)
                 .IsRequired();
 
-            entity.HasIndex(v => new { v.LicensePlate.PlateNumber, v.LicensePlate.CountryCode })
-                .IsUnique()
-                .HasFilter("IsDeleted = 0");
+            //entity.HasIndex(v => new { v.LicensePlate.PlateNumber, v.LicensePlate.CountryCode })
+            //    .IsUnique()
+            //    .HasFilter("IsDeleted = 0");
 
             entity.HasIndex(v => v.OwnerId);
             entity.HasIndex(v => v.IsDeleted);
