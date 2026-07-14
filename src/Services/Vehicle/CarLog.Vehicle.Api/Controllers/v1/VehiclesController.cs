@@ -1,6 +1,7 @@
 ﻿using CarLog.Vehicle.Application.Features.Vehicles.Commands;
 using CarLog.Vehicle.Application.Features.Vehicles.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarLog.Vehicle.Api.Controllers.v1;
@@ -9,6 +10,7 @@ namespace CarLog.Vehicle.Api.Controllers.v1;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/[controller]")]
 [Produces("application/json")]
+[Authorize]
 public class VehiclesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -30,6 +32,7 @@ public class VehiclesController : ControllerBase
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> GetById(Guid id) 
     {
         var query = new GetVehicleByIdQuery { Id = id };
@@ -49,6 +52,7 @@ public class VehiclesController : ControllerBase
     /// <returns>List of vehicles</returns>
     [HttpGet("by-owner/{ownerId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> GetByOwner(Guid ownerId, [FromQuery] string ownerType) 
     {
         var query = new GetVehiclesByOwnerQuery
@@ -71,6 +75,7 @@ public class VehiclesController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> Create([FromBody] CreateVehicleCommand command)
     {
         var result = await _mediator.Send(command);
@@ -88,6 +93,7 @@ public class VehiclesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> Update(Guid id, [FromBody] UpdateVehicleCommand command)
     {
         if (id != command.Id) return BadRequest("ID mismatch");
@@ -107,6 +113,7 @@ public class VehiclesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> UpdateMileage(Guid id, [FromBody] UpdateMileageCommand command)
     {
         if (id != command.Id) return BadRequest("ID mismatch");
@@ -123,6 +130,7 @@ public class VehiclesController : ControllerBase
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> Delete(Guid id)
     {
         var command = new DeleteVehicleCommand { Id = id };

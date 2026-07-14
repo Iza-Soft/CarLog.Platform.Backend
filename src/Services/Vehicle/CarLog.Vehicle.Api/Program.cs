@@ -1,11 +1,16 @@
+using CarLog.Vehicle.Api.Configuration;
 using CarLog.Vehicle.Application;
 using CarLog.Vehicle.Infrastructure;
 using CarLog.Vehicle.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Serilog;
 using System.Reflection;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,6 +79,21 @@ builder.Services.AddSwaggerGen(c =>
     }
 
     #endregion
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme 
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter only the token (without the 'Bearer ' prefix) — Swagger will add it itself"
+    });
+
+    c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+    });
 });
 
 #endregion
@@ -88,7 +108,7 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddApplication();
 
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 
 #endregion
 
@@ -112,6 +132,43 @@ builder.Services.AddHealthChecks().AddDbContextCheck<VehicleDbContext>();
 
 builder.Services.AddDbContext<VehicleDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+#region JWT Validation
+
+var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>() ?? throw new InvalidOperationException("Jwt settings are missing in the configuration");
+
+builder.Services.AddSingleton(jwtSettings);
+
+builder.Services
+       .AddAuthentication(options =>
+       {
+           options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+
+           options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+       })
+       .AddJwtBearer(options =>
+       {
+           options.TokenValidationParameters = new TokenValidationParameters
+           {
+               ValidateIssuer = true,
+               ValidateAudience = true,
+               ValidateLifetime = true,
+               ValidateIssuerSigningKey = true,
+               ValidIssuer = jwtSettings.Issuer,
+               ValidAudience = jwtSettings.Audience,
+               IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+               ClockSkew = TimeSpan.FromMinutes(2)
+           };
+       });
+
+//builder.Services.AddAuthorization(options => 
+//{
+//    options.AddPolicy("B2CDriver", policy => policy.RequireClaim("tenant_type", "personal"));
+
+//    options.AddPolicy("B2BFeetManager", policy => policy.RequireClaim("tenant_type", "fleet").RequireClaim("role", "manager"));
+//});
+
+#endregion
+
 var app = builder.Build();
 
 #region Configure the HTTP request pipeline
@@ -119,6 +176,8 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
