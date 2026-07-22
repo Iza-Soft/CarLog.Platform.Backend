@@ -2,9 +2,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using CarLog.Vehicle.Application.Interfaces.Repositories;
 using CarLog.Vehicle.Infrastructure.Persistence;
 using CarLog.Vehicle.Infrastructure.Repositories;
+using CarLog.Vehicle.Application.Interfaces;
 
 namespace CarLog.Vehicle.Infrastructure;
 
