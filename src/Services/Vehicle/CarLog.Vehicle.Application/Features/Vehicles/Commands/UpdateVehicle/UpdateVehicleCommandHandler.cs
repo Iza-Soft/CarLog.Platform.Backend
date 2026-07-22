@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CarLog.Vehicle.Application.Common.Exceptions;
+using CarLog.Vehicle.Application.Common.Interfaces;
 using CarLog.Vehicle.Application.DTOs;
 using CarLog.Vehicle.Application.Interfaces;
 using MediatR;
@@ -9,11 +10,13 @@ namespace CarLog.Vehicle.Application.Features.Vehicles.Commands.UpdateVehicle;
 public class UpdateVehicleCommandHandler : IRequestHandler<UpdateVehicleCommand, VehicleDto>
 {
     private readonly IVehicleRepository _vehicleRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
-    public UpdateVehicleCommandHandler(IVehicleRepository vehicleRepository, IMapper mapper)
+    public UpdateVehicleCommandHandler(IVehicleRepository vehicleRepository, IUnitOfWork unitOfWork, IMapper mapper)
     {
         _vehicleRepository = vehicleRepository;
+        _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
 
@@ -31,6 +34,7 @@ public class UpdateVehicleCommandHandler : IRequestHandler<UpdateVehicleCommand,
             request.HorsePower);
 
         await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return _mapper.Map<VehicleDto>(vehicle);
     }
