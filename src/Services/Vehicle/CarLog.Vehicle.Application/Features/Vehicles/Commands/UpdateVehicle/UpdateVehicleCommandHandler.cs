@@ -4,6 +4,7 @@ using CarLog.Vehicle.Application.Common.Interfaces;
 using CarLog.Vehicle.Application.DTOs;
 using CarLog.Vehicle.Application.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace CarLog.Vehicle.Application.Features.Vehicles.Commands.UpdateVehicle;
 
@@ -12,12 +13,14 @@ public class UpdateVehicleCommandHandler : IRequestHandler<UpdateVehicleCommand,
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ILogger<UpdateVehicleCommandHandler> _logger;
 
-    public UpdateVehicleCommandHandler(IVehicleRepository vehicleRepository, IUnitOfWork unitOfWork, IMapper mapper)
+    public UpdateVehicleCommandHandler(IVehicleRepository vehicleRepository, IUnitOfWork unitOfWork, IMapper mapper, ILogger<UpdateVehicleCommandHandler> logger)
     {
         _vehicleRepository = vehicleRepository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<VehicleDto> Handle(UpdateVehicleCommand request, CancellationToken cancellationToken)
@@ -35,6 +38,8 @@ public class UpdateVehicleCommandHandler : IRequestHandler<UpdateVehicleCommand,
 
         await _vehicleRepository.UpdateAsync(vehicle, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Updated vehicle {VehicleId} details", vehicle.Id);
 
         return _mapper.Map<VehicleDto>(vehicle);
     }

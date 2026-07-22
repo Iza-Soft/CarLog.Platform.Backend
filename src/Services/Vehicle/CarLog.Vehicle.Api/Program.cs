@@ -1,11 +1,12 @@
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using CarLog.Vehicle.Api.Configuration;
+using CarLog.Vehicle.Api.Middleware;
 using CarLog.Vehicle.Application;
 using CarLog.Vehicle.Infrastructure;
 using CarLog.Vehicle.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Serilog;
@@ -16,7 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 #region Add Serial log
 
-builder.Host.UseSerilog((context, config) => 
+builder.Host.UseSerilog((context, config) =>
 {
     config.ReadFrom.Configuration(context.Configuration).Enrich.FromLogContext().WriteTo.Console().WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day);
 });
@@ -25,7 +26,6 @@ builder.Host.UseSerilog((context, config) =>
 
 #region Add services to the container.
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 builder.Services.AddControllers();
@@ -34,14 +34,12 @@ builder.Services.AddControllers();
 
 #region Add API Versioning
 
-builder.Services.AddApiVersioning(config => 
+builder.Services.AddApiVersioning(config =>
 {
     config.DefaultApiVersion = new ApiVersion(1, 0);
     config.AssumeDefaultVersionWhenUnspecified = true;
     config.ReportApiVersions = true;
-});
-
-builder.Services.AddVersionedApiExplorer(options => 
+}).AddApiExplorer(options =>
 {
     options.GroupNameFormat = "'v'VVV";
     options.SubstituteApiVersionInUrl = true;
@@ -53,24 +51,11 @@ builder.Services.AddVersionedApiExplorer(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen(c => 
+builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
+
+builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "CarLog Vehicle API",
-        Version = "v1",
-        Description = "API for managing vehicles in CarLog application",
-        Contact = new OpenApiContact
-        {
-            Name = "CarLog Team",
-            Email = "support@carlog.com"
-        }
-    });
-
-    #region Include XML Comments
-
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
 
     if (File.Exists(xmlPath))
@@ -78,9 +63,7 @@ builder.Services.AddSwaggerGen(c =>
         c.IncludeXmlComments(xmlPath);
     }
 
-    #endregion
-
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme 
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
         Type = SecuritySchemeType.Http,
@@ -114,23 +97,15 @@ builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 
 #region Add CORS
 
-builder.Services.AddCors(options => 
+builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder => 
+    options.AddPolicy("AllowAll", policy =>
     {
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
     });
 });
 
 #endregion
-
-#region Add Health Check
-
-builder.Services.AddHealthChecks().AddDbContextCheck<VehicleDbContext>();
-
-#endregion
-
-// builder.Services.AddDbContext<VehicleDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("AzureSqlConnection")));
 
 #region JWT Validation
 
@@ -160,18 +135,17 @@ builder.Services
            };
        });
 
-//builder.Services.AddAuthorization(options => 
-//{
-//    options.AddPolicy("B2CDriver", policy => policy.RequireClaim("tenant_type", "personal"));
-
-//    options.AddPolicy("B2BFeetManager", policy => policy.RequireClaim("tenant_type", "fleet").RequireClaim("role", "manager"));
-//});
+builder.Services.AddAuthorization();
 
 #endregion
 
 var app = builder.Build();
 
 #region Configure the HTTP request pipeline
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
+app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 
@@ -189,7 +163,15 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
 
-    app.UseSwaggerUI();
+    var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
+    app.UseSwaggerUI(options =>
+    {
+        foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
+        {
+            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
+        }
+    });
 
     app.MapOpenApi();
 

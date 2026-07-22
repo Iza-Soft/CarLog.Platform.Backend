@@ -62,47 +62,33 @@ builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 
 #endregion
 
-#region Swagger
+#region Add Swagger
 
-var apiVersionDescriptionProvider = builder.Services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>();
+builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen(options =>
+builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
+
+builder.Services.AddSwaggerGen(c =>
 {
-    foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
-    {
-        options.SwaggerDoc(description.GroupName, new OpenApiInfo
-        {
-            Title = "CarLog Maintenance API",
-            Version = description.GroupName,
-            Description = "API for managing vehicle maintenance records in CarLog application",
-            Contact = new OpenApiContact
-            {
-                Name = "CarLog Team",
-                Email = "support@carlog.com"
-            }
-        });
-    }
-
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
 
     if (File.Exists(xmlPath))
     {
-        options.IncludeXmlComments(xmlPath);
+        c.IncludeXmlComments(xmlPath);
     }
 
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
-        In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
         Scheme = "Bearer",
         BearerFormat = "JWT",
-        Description = "Въведи само токена (без 'Bearer ' префикс)."
+        In = ParameterLocation.Header,
+        Description = "Enter only the token (without the 'Bearer ' prefix) — Swagger will add it itself"
     });
 
-    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
         [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
@@ -185,13 +171,13 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
 
+    var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
     app.UseSwaggerUI(options =>
     {
         foreach (var description in apiVersionDescriptionProvider.ApiVersionDescriptions)
         {
-            options.SwaggerEndpoint(
-                $"/swagger/{description.GroupName}/swagger.json",
-                description.GroupName.ToUpperInvariant());
+            options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
         }
     });
 
