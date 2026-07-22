@@ -5,15 +5,13 @@ namespace CarLog.Vehicle.Infrastructure.Persistence;
 
 public class VehicleDbContext : DbContext
 {
-    public VehicleDbContext(DbContextOptions<VehicleDbContext> options): base(options)
-    {
-    }
+    public VehicleDbContext(DbContextOptions<VehicleDbContext> options) : base(options) { }
 
     public DbSet<VehicleEntity> Vehicles => Set<VehicleEntity>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder) 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<VehicleEntity>(entity => 
+        modelBuilder.Entity<VehicleEntity>(entity =>
         {
             entity.HasKey(v => v.Id);
 
@@ -45,8 +43,7 @@ public class VehicleDbContext : DbContext
                     .HasMaxLength(2);
 
                 plate.HasIndex(p => new { p.PlateNumber, p.CountryCode })
-                    .IsUnique()
-                    .HasFilter("IsDeleted = 0");
+                    .IsUnique();
             });
 
             entity.Property(v => v.Vin)
@@ -75,22 +72,13 @@ public class VehicleDbContext : DbContext
             entity.Property(v => v.CurrentMileage)
                 .IsRequired();
 
-            entity.Property(v => v.CreatedAt)
+            entity.Property(v => v.CreatedAtUtc)
                 .IsRequired();
 
-            entity.Property(v => v.UpdatedAt);
-
-            entity.Property(v => v.IsDeleted)
+            entity.Property(v => v.UpdatedAtUtc)
                 .IsRequired();
-
-            //entity.HasIndex(v => new { v.LicensePlate.PlateNumber, v.LicensePlate.CountryCode })
-            //    .IsUnique()
-            //    .HasFilter("IsDeleted = 0");
 
             entity.HasIndex(v => v.OwnerId);
-            entity.HasIndex(v => v.IsDeleted);
-
-            entity.HasQueryFilter(v => !v.IsDeleted);
         });
 
         base.OnModelCreating(modelBuilder);

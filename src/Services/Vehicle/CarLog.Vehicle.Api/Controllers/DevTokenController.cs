@@ -30,7 +30,7 @@ public class DevTokenController : ControllerBase
 
         var token = new JwtSecurityToken(issuer: _jwtSettings.Issuer, audience: _jwtSettings.Audience, claims: claims, expires: DateTime.UtcNow.AddHours(1), signingCredentials: creds);
 
-        return Ok(new { tokern= new JwtSecurityTokenHandler().WriteToken(token)});
+        return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
     }
 }
 #endif

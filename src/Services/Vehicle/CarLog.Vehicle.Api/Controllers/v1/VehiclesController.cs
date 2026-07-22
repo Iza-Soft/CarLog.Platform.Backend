@@ -1,5 +1,11 @@
-﻿using CarLog.Vehicle.Application.Features.Vehicles.Commands;
-using CarLog.Vehicle.Application.Features.Vehicles.Queries;
+﻿using Asp.Versioning;
+using CarLog.Vehicle.Application.Features.Vehicles.Commands.CreateVehicle;
+using CarLog.Vehicle.Application.Features.Vehicles.Commands.DeleteVehicle;
+using CarLog.Vehicle.Application.Features.Vehicles.Commands.UpdateMileage;
+using CarLog.Vehicle.Application.Features.Vehicles.Commands.UpdateVehicle;
+using CarLog.Vehicle.Application.Features.Vehicles.Queries.GetVehicleById;
+using CarLog.Vehicle.Application.Features.Vehicles.Queries.GetVehiclesByOwner;
+using CarLog.Vehicle.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,13 +20,11 @@ namespace CarLog.Vehicle.Api.Controllers.v1;
 public class VehiclesController : ControllerBase
 {
     private readonly IMediator _mediator;
-    
     private readonly ILogger<VehiclesController> _logger;
 
     public VehiclesController(IMediator mediator, ILogger<VehiclesController> logger)
     {
         _mediator = mediator;
-
         _logger = logger;
     }
 
@@ -33,13 +37,9 @@ public class VehiclesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult> GetById(Guid id) 
+    public async Task<ActionResult> GetById(Guid id)
     {
-        var query = new GetVehicleByIdQuery { Id = id };
-
-        var result = await _mediator.Send(query);
-
-        if (result == null) return NotFound();
+        var result = await _mediator.Send(new GetVehicleByIdQuery(id));
 
         return Ok(result);
     }
@@ -53,16 +53,9 @@ public class VehiclesController : ControllerBase
     [HttpGet("by-owner/{ownerId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult> GetByOwner(Guid ownerId, [FromQuery] string ownerType) 
+    public async Task<ActionResult> GetByOwner(Guid ownerId, [FromQuery] OwnerType ownerType)
     {
-        var query = new GetVehiclesByOwnerQuery
-        {
-            OwnerId = ownerId,
-
-            OwnerType = ownerType
-        };
-
-        var result = await _mediator.Send(query);
+        var result = await _mediator.Send(new GetVehiclesByOwnerQuery(ownerId, ownerType));
 
         return Ok(result);
     }
@@ -96,7 +89,12 @@ public class VehiclesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> Update(Guid id, [FromBody] UpdateVehicleCommand command)
     {
-        if (id != command.Id) return BadRequest("ID mismatch");
+        if (id != command.Id)
+        {
+            _logger.LogWarning("ID mismatch on Update: route ID {RouteId}, body ID {BodyId}", id, command.Id);
+
+            return BadRequest("ID mismatch");
+        }
 
         var result = await _mediator.Send(command);
 
@@ -116,7 +114,12 @@ public class VehiclesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> UpdateMileage(Guid id, [FromBody] UpdateMileageCommand command)
     {
-        if (id != command.Id) return BadRequest("ID mismatch");
+        if (id != command.Id)
+        {
+            _logger.LogWarning("ID mismatch on UpdateMileage: route ID {RouteId}, body ID {BodyId}", id, command.Id);
+
+            return BadRequest("ID mismatch");
+        }
 
         var result = await _mediator.Send(command);
 
@@ -124,7 +127,7 @@ public class VehiclesController : ControllerBase
     }
 
     /// <summary>
-    /// Soft delete vehicle
+    /// Delete vehicle
     /// </summary>
     /// <param name="id">Vehicle ID</param>
     [HttpDelete("{id}")]
@@ -133,10 +136,8 @@ public class VehiclesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> Delete(Guid id)
     {
-        var command = new DeleteVehicleCommand { Id = id };
+        await _mediator.Send(new DeleteVehicleCommand(id));
 
-        await _mediator.Send(command);
-        
         return NoContent();
     }
 }

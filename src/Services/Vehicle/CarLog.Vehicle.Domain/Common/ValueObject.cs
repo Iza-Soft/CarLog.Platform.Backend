@@ -6,23 +6,17 @@ public abstract record ValueObject
 
     public virtual bool Equals(ValueObject? other)
     {
-        if (other is null)
-            return false;
+        if (other is null) return false;
 
-        if (ReferenceEquals(this, other))
-            return true;
+        if (ReferenceEquals(this, other)) return true;
 
-        if (GetType() != other.GetType())
-            return false;
+        if (GetType() != other.GetType()) return false;
 
-        return GetEqualityComponents()
-            .SequenceEqual(other.GetEqualityComponents());
+        return GetEqualityComponents().SequenceEqual(other.GetEqualityComponents());
     }
 
     public override int GetHashCode()
     {
-        return GetEqualityComponents()
-            .Select(x => x?.GetHashCode() ?? 0)
-            .Aggregate((x, y) => x ^ y);
+        return GetEqualityComponents().Select(x => x?.GetHashCode() ?? 0).Aggregate((x, y) => x ^ y);
     }
 }

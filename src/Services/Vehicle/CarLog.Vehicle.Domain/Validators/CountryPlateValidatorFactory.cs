@@ -30,12 +30,7 @@ public static class CountryPlateValidatorFactory
 
     public static ICountryPlateValidator Create(string countryCode)
     {
-        return _validators.TryGetValue(countryCode, out var validator)
-            ? validator
-            : new GenericPlateValidator();
+        return _validators.TryGetValue(countryCode, out var validator) ? validator : new GenericPlateValidator();
     }
 
-    // for DI containers (if we want to register them)
-    public static IEnumerable<ICountryPlateValidator> GetAllValidators()
-        => _validators.Values;
 }

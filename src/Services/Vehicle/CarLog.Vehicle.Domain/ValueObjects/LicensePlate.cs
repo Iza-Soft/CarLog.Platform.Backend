@@ -1,24 +1,19 @@
 ﻿using CarLog.Vehicle.Domain.Common;
+using CarLog.Vehicle.Domain.Exceptions;
 using CarLog.Vehicle.Domain.Validators;
+using System.Text.RegularExpressions;
 
 namespace CarLog.Vehicle.Domain.ValueObjects;
 /// <summary>
-/// // Създаване
+/// Създаване:
 /// var bgPlate = LicensePlate.Create("СА1234ВТ", "BG");
 /// var dePlate = LicensePlate.Create("B MW 123", "DE");
-/// var ukPlate = LicensePlate.Create("AB12 CDE", "UK");
-
-/// // Проверка
-/// if (bgPlate.IsBulgarian())
+///
+/// Проверка за държава:
+/// if (bgPlate.IsFromCountry("BG"))
 ///    Console.WriteLine("Това е български номер");
-
-/// // Валидация
-/// var isValid = "XYZ123".IsValidForCountry("US");
-
-/// // Extension методи
-/// var plate = "CA1234AB".ToLicensePlate("BG");
-
-/// // Equals
+///
+/// Equals:
 /// var plate1 = LicensePlate.Create("CA1234AB", "BG");
 /// var plate2 = LicensePlate.Create("CA1234AB", "BG");
 /// Console.WriteLine(plate1 == plate2); // True
@@ -44,7 +39,7 @@ public sealed record LicensePlate : ValueObject
 
         var validator = CountryPlateValidatorFactory.Create(normalizedCountry);
 
-        if (!validator.IsValid(normalizedPlate)) throw new ArgumentException($"Invalid license plate format for {normalizedCountry}: {normalizedPlate}");
+        if (!validator.IsValid(normalizedPlate)) throw new DomainException($"Invalid license plate format for {normalizedCountry}: {normalizedPlate}");
 
         return new LicensePlate(normalizedPlate, normalizedCountry);
     }
@@ -54,6 +49,7 @@ public sealed record LicensePlate : ValueObject
         try
         {
             Create(plateNumber, countryCode);
+
             return true;
         }
         catch
@@ -65,6 +61,7 @@ public sealed record LicensePlate : ValueObject
     protected override IEnumerable<object> GetEqualityComponents()
     {
         yield return PlateNumber;
+
         yield return CountryCode;
     }
 
@@ -82,24 +79,17 @@ public sealed record LicensePlate : ValueObject
 
     public bool MatchesPattern(string pattern)
     {
-        return System.Text.RegularExpressions.Regex.IsMatch(
-            PlateNumber, pattern,
-            System.Text.RegularExpressions.RegexOptions.None,
-            TimeSpan.FromMilliseconds(100));
+        return Regex.IsMatch(PlateNumber, pattern, RegexOptions.None, TimeSpan.FromMilliseconds(100));
     }
 
     private static void ValidateInput(string plateNumber, string countryCode)
     {
-        if (string.IsNullOrWhiteSpace(plateNumber))
-            throw new ArgumentException("Plate number cannot be empty", nameof(plateNumber));
+        if (string.IsNullOrWhiteSpace(plateNumber)) throw new DomainException("Plate number cannot be empty");
 
-        if (string.IsNullOrWhiteSpace(countryCode))
-            throw new ArgumentException("Country code cannot be empty", nameof(countryCode));
+        if (string.IsNullOrWhiteSpace(countryCode)) throw new DomainException("Country code cannot be empty");
 
-        if (countryCode.Length != 2 || !countryCode.All(char.IsLetter))
-            throw new ArgumentException("Country code must be 2 letters", nameof(countryCode));
+        if (countryCode.Length != 2 || !countryCode.All(char.IsLetter)) throw new DomainException("Country code must be 2 letters");
 
-        if (plateNumber.Length < 2 || plateNumber.Length > 12)
-            throw new ArgumentException("Plate number must be between 2 and 12 characters", nameof(plateNumber));
+        if (plateNumber.Length < 2 || plateNumber.Length > 12) throw new DomainException("Plate number must be between 2 and 12 characters");
     }
 }
