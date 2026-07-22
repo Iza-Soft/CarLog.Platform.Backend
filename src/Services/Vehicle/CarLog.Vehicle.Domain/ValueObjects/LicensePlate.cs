@@ -5,22 +5,15 @@ using System.Text.RegularExpressions;
 
 namespace CarLog.Vehicle.Domain.ValueObjects;
 /// <summary>
-/// // Създаване
+/// Създаване:
 /// var bgPlate = LicensePlate.Create("СА1234ВТ", "BG");
 /// var dePlate = LicensePlate.Create("B MW 123", "DE");
-/// var ukPlate = LicensePlate.Create("AB12 CDE", "UK");
-
-/// // Проверка
-/// if (bgPlate.IsBulgarian())
+///
+/// Проверка за държава:
+/// if (bgPlate.IsFromCountry("BG"))
 ///    Console.WriteLine("Това е български номер");
-
-/// // Валидация
-/// var isValid = "XYZ123".IsValidForCountry("US");
-
-/// // Extension методи
-/// var plate = "CA1234AB".ToLicensePlate("BG");
-
-/// // Equals
+///
+/// Equals:
 /// var plate1 = LicensePlate.Create("CA1234AB", "BG");
 /// var plate2 = LicensePlate.Create("CA1234AB", "BG");
 /// Console.WriteLine(plate1 == plate2); // True
