@@ -15,37 +15,74 @@ services:
       dockerfile: src/Services/Vehicle/CarLog.Vehicle.Api/Dockerfile
     container_name: carlog-vehicle-api
     ports:
-      - "${API_HTTP_PORT}:8080"
-      - "${API_HTTPS_PORT}:8081"
+      - "${VEHICLE_API_HTTP_PORT}:8080"
+      - "${VEHICLE_API_HTTPS_PORT}:8081"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ASPNETCORE_URLS=https://+:8081;http://+:8080
       - ASPNETCORE_Kestrel__Certificates__Default__Password=${CERT_PASSWORD}
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-      - ConnectionStrings__DefaultConnection=Server=sql-server;Database=CarLog.VehicleDb;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True
+      - ConnectionStrings__AzureSqlConnection=Server=sql-server-vehicle;Database=CarLogVehicleDb;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True
     volumes:
       - ~/.aspnet/https:/https:ro
     depends_on:
-      - sql-server
+      - sql-server-vehicle
     networks:
       - carlog-network
 
-  sql-server:
+  sql-server-vehicle:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: carlog-sql-server
+    container_name: carlog-sql-server-vehicle
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=${DB_PASSWORD}
       - MSSQL_PID=Express
     ports:
-      - "${SQL_PORT}:1433"
+      - "${SQL_PORT_VEHICLE}:1433"
     volumes:
-      - sql-data:/var/opt/mssql
+      - sql-data-vehicle:/var/opt/mssql
+    networks:
+      - carlog-network
+
+  carlog.maintenance.api:
+    image: ${DOCKER_REGISTRY-}carlogmaintenanceapi
+    build:
+      context: .
+      dockerfile: src/Services/Maintenance/CarLog.Maintenance.Api/Dockerfile
+    container_name: carlog-maintenance-api
+    ports:
+      - "${MAINTENANCE_API_HTTP_PORT}:8080"
+      - "${MAINTENANCE_API_HTTPS_PORT}:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${CERT_PASSWORD}
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ConnectionStrings__AzureSqlConnection=Server=sql-server-maintenance;Database=CarLogMaintenanceDb;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    depends_on:
+      - sql-server-maintenance
+    networks:
+      - carlog-network
+
+  sql-server-maintenance:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: carlog-sql-server-maintenance
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${DB_PASSWORD}
+      - MSSQL_PID=Express
+    ports:
+      - "${SQL_PORT_MAINTENANCE}:1433"
+    volumes:
+      - sql-data-maintenance:/var/opt/mssql
     networks:
       - carlog-network
 
 volumes:
-  sql-data:
+  sql-data-vehicle:
+  sql-data-maintenance:
 
 networks:
   carlog-network:

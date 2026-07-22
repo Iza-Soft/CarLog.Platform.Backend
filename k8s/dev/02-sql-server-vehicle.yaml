@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sql-data-vehicle-pvc
+  namespace: carlog-dev
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sql-server-vehicle
+  namespace: carlog-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sql-server-vehicle
+  template:
+    metadata:
+      labels:
+        app: sql-server-vehicle
+    spec:
+      containers:
+        - name: sql-server-vehicle
+          image: mcr.microsoft.com/mssql/server:2022-latest
+          ports:
+            - containerPort: 1433
+          env:
+            - name: ACCEPT_EULA
+              valueFrom:
+                configMapKeyRef:
+                  name: vehicle-api-config
+                  key: ACCEPT_EULA
+            - name: MSSQL_PID
+              valueFrom:
+                configMapKeyRef:
+                  name: vehicle-api-config
+                  key: MSSQL_PID
+            - name: SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: vehicle-api-secret
+                  key: SA_PASSWORD
+          volumeMounts:
+            - name: sql-data
+              mountPath: /var/opt/mssql
+          resources:
+            requests: { memory: "2Gi", cpu: "500m" }
+            limits: { memory: "4Gi", cpu: "1" }
+      volumes:
+        - name: sql-data
+          persistentVolumeClaim:
+            claimName: sql-data-vehicle-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sql-server-vehicle
+  namespace: carlog-dev
+spec:
+  selector:
+    app: sql-server-vehicle
+  ports:
+    - port: 1433
+      targetPort: 1433
+  type: ClusterIP

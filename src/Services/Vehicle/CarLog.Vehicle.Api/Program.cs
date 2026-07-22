@@ -130,7 +130,7 @@ builder.Services.AddHealthChecks().AddDbContextCheck<VehicleDbContext>();
 
 #endregion
 
-builder.Services.AddDbContext<VehicleDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// builder.Services.AddDbContext<VehicleDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("AzureSqlConnection")));
 
 #region JWT Validation
 
