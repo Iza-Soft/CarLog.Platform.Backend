@@ -5,6 +5,12 @@
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Expense/">
+    <Project Path="src/Services/Expense/CarLog.Expense.Api/CarLog.Expense.Api.csproj" />
+    <Project Path="src/Services/Expense/CarLog.Expense.Application/CarLog.Expense.Application.csproj" />
+    <Project Path="src/Services/Expense/CarLog.Expense.Domain/CarLog.Expense.Domain.csproj" />
+    <Project Path="src/Services/Expense/CarLog.Expense.Infrastructure/CarLog.Expense.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Services/Maintenance/">
     <Project Path="src/Services/Maintenance/CarLog.Maintenance.Api/CarLog.Maintenance.Api.csproj" />
     <Project Path="src/Services/Maintenance/CarLog.Maintenance.Application/CarLog.Maintenance.Application.csproj" />

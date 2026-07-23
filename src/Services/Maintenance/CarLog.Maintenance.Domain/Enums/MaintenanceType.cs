@@ -4,6 +4,7 @@ namespace CarLog.Maintenance.Domain.Enums;
 
 public enum MaintenanceType : byte
 {
+    [Display(Name = "Unknown", Description = "Maintenance type not specified")]
     Unknown = 0,
 
     [Display(Name = "Oil Change", Description = "Engine oil and filter replacement")]

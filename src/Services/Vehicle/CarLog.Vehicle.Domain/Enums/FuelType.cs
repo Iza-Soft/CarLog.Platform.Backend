@@ -4,6 +4,7 @@ namespace CarLog.Vehicle.Domain.Enums;
 
 public enum FuelType : byte
 {
+    [Display(Name = "Unknown", Description = "Fuel type not specified")]
     Unknown = 0,
 
     [Display(Name = "Petrol", Description = "Gasoline engine")]
@@ -24,6 +25,6 @@ public enum FuelType : byte
     [Display(Name = "LPG", Description = "Liquified Petroleum Gas")]
     LPG = 6,
 
-    [Display(Name = "Hydrogen", Description = "Fuel cell vehicle")]
+    [Display(Name = "CNG", Description = "Compressed Natural Gas")]
     CNG = 7
 }

@@ -5,6 +5,7 @@ namespace CarLog.Vehicle.Domain.Enums;
 
 public enum VehicleType : byte
 {
+    [Display(Name = "Unknown", Description = "Vehicle type not specified")]
     Unknown = 0,
 
     [Display(Name = "Sedan", Description = "4-door passenger car")]

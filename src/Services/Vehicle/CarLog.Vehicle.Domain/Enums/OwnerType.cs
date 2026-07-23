@@ -4,6 +4,7 @@ namespace CarLog.Vehicle.Domain.Enums;
 
 public enum OwnerType : byte
 {
+    [Display(Name = "Unknown", Description = "Owner type not specified")]
     Unknown = 0,
 
     [Display(Name = "Personal", Description = "Individual owner - B2C")]

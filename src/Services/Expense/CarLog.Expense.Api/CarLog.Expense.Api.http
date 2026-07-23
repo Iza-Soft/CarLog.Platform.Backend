@@ -1,0 +1,6 @@
+@CarLog.Expense.Api_HostAddress = http://localhost:5078
+
+GET {{CarLog.Expense.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
