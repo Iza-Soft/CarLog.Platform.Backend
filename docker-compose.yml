@@ -80,9 +80,46 @@ services:
     networks:
       - carlog-network
 
+  carlog.expense.api:
+    image: ${DOCKER_REGISTRY-}carlogexpenseapi
+    build:
+      context: .
+      dockerfile: src/Services/Expense/CarLog.Expense.Api/Dockerfile
+    container_name: carlog-expense-api
+    ports:
+      - "${EXPENSE_API_HTTP_PORT}:8080"
+      - "${EXPENSE_API_HTTPS_PORT}:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${CERT_PASSWORD}
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ConnectionStrings__AzureSqlConnection=Server=sql-server-expense;Database=CarLogExpenseDb;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    depends_on:
+      - sql-server-expense
+    networks:
+      - carlog-network
+
+  sql-server-expense:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: carlog-sql-server-expense
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${DB_PASSWORD}
+      - MSSQL_PID=Express
+    ports:
+      - "${SQL_PORT_EXPENSE}:1433"
+    volumes:
+      - sql-data-expense:/var/opt/mssql
+    networks:
+      - carlog-network
+
 volumes:
   sql-data-vehicle:
   sql-data-maintenance:
+  sql-data-expense:
 
 networks:
   carlog-network:
