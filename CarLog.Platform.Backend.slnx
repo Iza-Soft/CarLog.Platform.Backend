@@ -17,6 +17,12 @@
     <Project Path="src/Services/Maintenance/CarLog.Maintenance.Domain/CarLog.Maintenance.Domain.csproj" />
     <Project Path="src/Services/Maintenance/CarLog.Maintenance.Infrastructure/CarLog.Maintenance.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Services/Reminder/">
+    <Project Path="src/Services/Reminder/CarLog.Reminder.Api/CarLog.Reminder.Api.csproj" />
+    <Project Path="src/Services/Reminder/CarLog.Reminder.Application/CarLog.Reminder.Application.csproj" />
+    <Project Path="src/Services/Reminder/CarLog.Reminder.Domain/CarLog.Reminder.Domain.csproj" />
+    <Project Path="src/Services/Reminder/CarLog.Reminder.Infrastructure/CarLog.Reminder.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Services/Vehicle/">
     <Project Path="src/Services/Vehicle/CarLog.Vehicle.Api/CarLog.Vehicle.Api.csproj" />
     <Project Path="src/Services/Vehicle/CarLog.Vehicle.Application/CarLog.Vehicle.Application.csproj" />

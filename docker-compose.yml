@@ -116,10 +116,47 @@ services:
     networks:
       - carlog-network
 
+  carlog.reminder.api:
+    image: ${DOCKER_REGISTRY-}carlogreminderapi
+    build:
+      context: .
+      dockerfile: src/Services/Reminder/CarLog.Reminder.Api/Dockerfile
+    container_name: carlog-reminder-api
+    ports:
+      - "${REMINDER_API_HTTP_PORT}:8080"
+      - "${REMINDER_API_HTTPS_PORT}:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${CERT_PASSWORD}
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ConnectionStrings__AzureSqlConnection=Server=sql-server-reminder;Database=CarLogReminderDb;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True
+    volumes:
+      - ~/.aspnet/https:/https:ro
+    depends_on:
+      - sql-server-reminder
+    networks:
+      - carlog-network
+
+  sql-server-reminder:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: carlog-sql-server-reminder
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${DB_PASSWORD}
+      - MSSQL_PID=Express
+    ports:
+      - "${SQL_PORT_REMINDER}:1433"
+    volumes:
+      - sql-data-reminder:/var/opt/mssql
+    networks:
+      - carlog-network
+
 volumes:
   sql-data-vehicle:
   sql-data-maintenance:
   sql-data-expense:
+  sql-data-reminder:
 
 networks:
   carlog-network:
